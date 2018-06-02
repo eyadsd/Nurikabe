@@ -39,7 +39,14 @@ makeTable(X,Y,N,Y):-
     makeTable(X1,1,N,Y).
 
 
-solve(X,Y,Z):- not(fxd_cell(X,Y,_)),retractall(cell(X,Y,_)),assert(cell(X,Y,Z)),printTable.
+solve(X,Y,Z):- not(fxd_cell(X,Y,_)),
+    retractall(cell(X,Y,_)),
+    assert(cell(X,Y,Z)),
+    retractall(islandsCountOK),
+    assert(islandsCountOK),
+    retractall(islandsNotConnected),
+    assert(islandsNotConnected),
+    printTable.
 
 block(X,Y):- X1 is X+1, Y1 is Y + 1, cell(X,Y,b), cell(X1,Y,b),cell(X,Y1,b),cell(X1,Y1,b).
 
@@ -98,14 +105,12 @@ blueCellsConnected:- traverseBlueCells;
 
 blueCellsOK:- noBlocks,blueCellsConnected.
 
-
-findIslands:- retractall(islandsConnected),
-              retractall(island(_,_,_)),
+findIslands:- retractall(island(_,_,_)),
               fxd_cell(X,Y,Z),
               retractall(visited(_,_)),
               findIslands(X,Y,Z).
 
-findIslands(X,Y,Z):- island(X,Y,_),assert(islandsConnected);
+findIslands(X,Y,Z):- island(X,Y,_),retractall(islandsNotConnected),assert(islandsNotConnected:- fail),fail;
                      X1 is X+1,X2 is X-1,
                      Y1 is Y+1,Y2 is Y-1,
                      assert(island(X,Y,Z)),assert(visited(X,Y)),(
@@ -114,9 +119,15 @@ findIslands(X,Y,Z):- island(X,Y,_),assert(islandsConnected);
                      cell(X,Y2,g),not(visited(X,Y2)),findIslands(X,Y2,Z);
                      cell(X2,Y,g),not(visited(X2,Y)),findIslands(X2,Y,Z)).
 
+countIsland:-island(_,_,Z),
+    aggregate_all(count,island(_,_,Z),Count),
+    write(Z),nl,
+    Count \= Z,
+    retractall(islandsCountOK),
+    assert(islandsCountOK:- fail),fail.
 
+solveIslands:- findIslands;countIsland.
 
-
-
+islandsOK:- solveIslands;islandsNotConnected,islandsCountOK.
 
 
