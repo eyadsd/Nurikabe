@@ -131,3 +131,7 @@ solveIslands:- findIslands;countIsland.
 islandsOK:- solveIslands;islandsNotConnected,islandsCountOK.
 
 
+checkSolution:- blueCellsOK,islandsOK.
+
+
+try :-cell(X,Y,_),(solve(X,Y,g);solve(X,Y,b)),checkSolution,fail.
